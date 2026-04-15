@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String    @id @default(uuid())
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  name         String    @db.VarChar(255)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  lastLogin    DateTime? @map("last_login")
+
+  @@map("admin_users")
+}
+
+model Nda {
+  id                       String     @id @default(cuid())
+  token                    String     @unique @db.VarChar(36)
+  receivingPartyName       String     @db.VarChar(255)
+  receivingPartyAddress    String     @db.Text
+  receivingPartyEmail      String     @db.VarChar(255)
+  status                   NdaStatus  @default(SENT)
+  createdAt                DateTime   @default(now())
+  expiresAt                DateTime
+  signedPdfUrl             String?    @db.Text
+  effectiveDate            DateTime   @default(now()) @db.Date
+  disclosingSignatoryName  String?    @map("disclosing_signatory_name") @db.VarChar(255)
+  disclosingSignatoryTitle String?    @map("disclosing_signatory_title") @db.VarChar(255)
+  disclosingSignedDate     DateTime?  @map("disclosing_signed_date") @db.Date
+  auditLog                 AuditLog[]
+  signers                  Signer[]
+
+  @@index([token])
+  @@index([status])
+  @@map("ndas")
+}
+
+model Signer {
+  id            String   @id @default(cuid())
+  ndaId         String
+  fullName      String   @db.VarChar(255)
+  title         String   @db.VarChar(255)
+  signatureData String   @db.LongText
+  ipAddress     String   @db.VarChar(45)
+  userAgent     String   @db.Text
+  signedAt      DateTime @default(now())
+  nda           Nda      @relation(fields: [ndaId], references: [id], onDelete: Cascade)
+
+  @@index([ndaId])
+  @@map("signers")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  ndaId     String
+  event     String   @db.VarChar(100)
+  metadata  String   @db.LongText
+  createdAt DateTime @default(now())
+  nda       Nda      @relation(fields: [ndaId], references: [id], onDelete: Cascade)
+
+  @@index([ndaId])
+  @@map("audit_log")
+}
+
+enum NdaStatus {
+  SENT
+  OPENED
+  SIGNED
+  EXPIRED
+}

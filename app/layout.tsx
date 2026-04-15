@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
@@ -21,10 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn("dark", "font-sans", geist.variable)}>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
-      </body>
+    <html lang="en" className={`dark ${inter.variable}`}>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }
